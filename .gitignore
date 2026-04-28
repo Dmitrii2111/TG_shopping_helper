@@ -1,0 +1,13 @@
+# Окружение
+venv/
+.env
+
+# База данных
+*.db
+
+# Кэш Python
+__pycache__/
+*.py[cod]
+
+# Разное
+.DS_Store

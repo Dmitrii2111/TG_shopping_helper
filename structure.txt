@@ -1,0 +1,26 @@
+family_shopping_bot/
+├── .env                    # Environment variables (Bot token, Google Sheets credentials path)
+├── requirements.txt        # Python dependencies
+├── main.py                 # Application entry point
+└── bot/
+    ├── __init__.py
+    ├── config.py           # Configuration and env variable loading
+    ├── database/
+    │   ├── __init__.py
+    │   ├── db.py           # SQLite connection and initialization using aiosqlite
+    │   └── queries.py      # SQL queries (CRUD operations)
+    ├── handlers/
+    │   ├── __init__.py
+    │   ├── base.py         # Basic commands (/start, /help, echo)
+    │   ├── shopping.py     # Shopping list handlers (add, checkoff) [Future]
+    │   └── voice.py        # Voice message handlers [Future]
+    ├── keyboards/
+    │   ├── __init__.py
+    │   └── inline.py       # Inline keyboards for checking off items [Future]
+    ├── services/
+    │   ├── __init__.py
+    │   ├── speech.py       # faster-whisper logic [Future]
+    │   ├── nlp.py          # Natasha categorization logic [Future]
+    │   └── sheets.py       # gspread Google Sheets synchronization [Future]
+    └── utils/
+        └── constants.py    # Text templates, category lists, etc.
