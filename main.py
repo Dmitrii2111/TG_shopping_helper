@@ -36,7 +36,6 @@ async def main():
 
     # 3. Include Routers
     dp.include_router(base_router)
-    dp.include_router(base_router)
     dp.include_router(shopping_router)
 
     # 4. Start polling
