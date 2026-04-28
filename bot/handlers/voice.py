@@ -6,6 +6,7 @@ from bot.services.speech import transcribe_voice
 from bot.services.nlp import extract_products  # <-- Import NLP
 from bot.database import queries
 from bot.utils import constants
+from bot.services.notifier import broadcast_addition
 
 voice_router = Router(name="voice_router")
 DOWNLOADS_DIR = "downloads"
@@ -30,22 +31,27 @@ async def handle_voice_message(message: Message, bot: Bot):
 
     # --- NLP MAGIC HAPPENS HERE ---
     products = extract_products(recognized_text)
-    user_id = message.from_user.id
+    user = message.from_user
     
-    # Save each extracted product as a separate item in the database
+    # Защита от None
+    if not user:
+        return
+    
     for product in products:
         await queries.add_item(
-            user_id=user_id,
+            user_id=user.id,
             item_name=product,
-            category=constants.DEFAULT_CATEGORY
+            category=constants.DEFAULT_CATEGORY,
+            added_by=user.first_name
         )
     
-    # Format the extracted list for the user
     added_items_str = ", ".join(products)
-    
     await processing_msg.edit_text(
         constants.VOICE_RECOGNIZED.format(
             text=recognized_text, 
             added_items=added_items_str
         )
     )
+    
+    # Broadcast to family
+    await broadcast_addition(bot, user.id, user.first_name, products)

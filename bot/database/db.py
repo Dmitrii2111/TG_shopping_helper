@@ -8,11 +8,12 @@ async def init_db():
     """Initialize the SQLite database and create tables if they don't exist."""
     try:
         async with aiosqlite.connect(config.db_path) as db:
-            # Table for shopping items
+            # Added 'added_by' column
             await db.execute("""
                 CREATE TABLE IF NOT EXISTS shopping_items (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     user_id INTEGER NOT NULL,
+                    added_by TEXT,
                     item_name TEXT NOT NULL,
                     category TEXT,
                     is_purchased BOOLEAN DEFAULT 0,
@@ -20,12 +21,12 @@ async def init_db():
                 )
             """)
             
-            # Table for users (family members)
+            # Updated 'users' table
             await db.execute("""
                 CREATE TABLE IF NOT EXISTS users (
                     user_id INTEGER PRIMARY KEY,
                     username TEXT,
-                    full_name TEXT,
+                    first_name TEXT,
                     joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
             """)

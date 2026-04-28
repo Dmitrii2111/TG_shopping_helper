@@ -4,18 +4,28 @@ from aiogram.filters import CommandStart
 
 from bot.utils.constants import START_WELCOME, BTN_START
 from bot.keyboards.reply import get_main_menu_keyboard
+from bot.database import queries  # <-- Import queries
+
+
 
 base_router = Router(name="base_router")
 
-# React to both /start command AND the "🚀 Старт" button
 @base_router.message(CommandStart())
 @base_router.message(F.text == BTN_START)
 async def cmd_start(message: Message):
     """Handler for the /start command and Start button."""
-    welcome_text = START_WELCOME.format(name=message.from_user.first_name)
+    user = message.from_user
     
-    # Send the welcome message AND the persistent reply keyboard
-    await message.answer(
-        welcome_text, 
-        reply_markup=get_main_menu_keyboard()
+    # Защита от None (убирает ошибку линтера)
+    if not user:
+        return
+    
+    # Register the user in the database safely
+    await queries.add_user(
+        user_id=user.id,
+        username=user.username or "unknown",  # Защита, если username скрыт
+        first_name=user.first_name
     )
+    
+    welcome_text = START_WELCOME.format(name=user.first_name)
+    await message.answer(welcome_text, reply_markup=get_main_menu_keyboard())   

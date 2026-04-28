@@ -27,3 +27,5 @@ VOICE_ERROR = "❌ Не удалось распознать текст. Попр
 # Reply Keyboard Buttons
 BTN_START = "🚀 Старт"
 BTN_LIST = "🛒 Список покупок"
+
+MSG_ADDITION_NOTIFICATION = "🛍 <b>{user_name}</b> добавил(а) в список:\n{items}"

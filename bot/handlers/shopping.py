@@ -6,6 +6,8 @@ from bot.database import queries
 from bot.keyboards.inline import build_shopping_keyboard, ItemCallback
 from bot.utils import constants
 from bot.services.nlp import extract_products
+from aiogram import Bot
+from bot.services.notifier import broadcast_addition
 
 shopping_router = Router(name="shopping_router")
 
@@ -70,3 +72,28 @@ async def add_text_item(message: Message):
         )
     added_items_str = ", ".join(products)
     await message.answer(constants.ITEM_ADDED.format(item_name=added_items_str))
+
+@shopping_router.message(F.text & ~F.text.startswith('/'))
+async def add_text_item(message: Message, bot: Bot):
+    raw_text = message.text.strip()
+    user = message.from_user
+    
+    # Защита от None
+    if not user:
+        return
+        
+    products = extract_products(raw_text)
+    
+    for product in products:
+        await queries.add_item(
+            user_id=user.id, 
+            item_name=product, 
+            category=constants.DEFAULT_CATEGORY,
+            added_by=user.first_name
+        )
+    
+    added_items_str = ", ".join(products)
+    await message.answer(constants.ITEM_ADDED.format(item_name=added_items_str))
+    
+    # Broadcast to family
+    await broadcast_addition(bot, user.id, user.first_name, products)
