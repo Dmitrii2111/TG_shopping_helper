@@ -18,7 +18,12 @@ PURCHASED_CONFIRM = "Куплено! ✅"
 DEFAULT_CATEGORY = "Без категории"
 ITEM_BUTTON_FORMAT = "🛒 {item_name} ({category})"
 
-# Voice processing messages
-VOICE_PROCESSING = "⏳ Распознаю голосовое сообщение..."
-VOICE_RECOGNIZED = "Распознано: <b>{text}</b>\nДобавлено в список!"
-VOICE_ERROR = "❌ Не удалось распознать текст. Попробуйте сказать громче и четче."
+# ... existing constants ...
+VOICE_PROCESSING = "⏳ Обрабатываю голосовое сообщение..."
+# Updated to show what was extracted:
+VOICE_RECOGNIZED = "🎙 Распознано: <i>{text}</i>\n✅ Добавлено: <b>{added_items}</b>"
+VOICE_ERROR = "❌ Не удалось распознать текст. Попробуйте сказать четче."
+
+# Reply Keyboard Buttons
+BTN_START = "🚀 Старт"
+BTN_LIST = "🛒 Список покупок"

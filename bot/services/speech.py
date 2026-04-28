@@ -4,33 +4,33 @@ from faster_whisper import WhisperModel
 
 logger = logging.getLogger(__name__)
 
-# Initialize the model globally so it's loaded only once.
-# "tiny" is very fast but slightly less accurate. "base" is a great middle-ground.
-# compute_type="int8" reduces memory usage on CPU.
+# Initialize the model globally to load it into memory only once.
+# "base" provides a great balance between speed and accuracy. 
+# compute_type="int8" reduces CPU memory usage.
 try:
-    logger.info("Loading Faster-Whisper model...")
-    model = WhisperModel("tiny", device="cpu", compute_type="int8")
+    logger.info("Loading Faster-Whisper 'base' model...")
+    model = WhisperModel("base", device="cpu", compute_type="int8")
     logger.info("Model loaded successfully!")
 except Exception as e:
     logger.error(f"Failed to load Whisper model: {e}")
     model = None
 
 def _transcribe_sync(file_path: str) -> str:
-    """Synchronous function to perform the actual STT task."""
+    """Synchronous function performing the heavy STT calculation."""
     if model is None:
         return ""
     
-    # beam_size=5 improves accuracy slightly
-    segments, info = model.transcribe(file_path, beam_size=5, language="ru")
+    # beam_size=5 slightly improves accuracy; language="ru" forces Russian
+    segments, _ = model.transcribe(file_path, beam_size=5, language="ru")
     
-    # Combine all speech segments into one string
+    # Combine all transcribed segments into a single string
     text = " ".join([segment.text for segment in segments])
     return text.strip()
 
 async def transcribe_voice(file_path: str) -> str:
-    """Asynchronous wrapper to run STT in a separate thread without blocking the bot."""
+    """Asynchronous wrapper to offload STT to a background thread."""
     try:
-        # Offload the CPU-heavy blocking STT function to a thread
+        # Run the blocking function in a separate thread so aiogram doesn't freeze
         text = await asyncio.to_thread(_transcribe_sync, file_path)
         return text
     except Exception as e:
