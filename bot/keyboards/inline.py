@@ -2,21 +2,26 @@ from aiogram.types import InlineKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram.filters.callback_data import CallbackData
 
-# Define a strongly-typed callback factory
-class BuyItemCallback(CallbackData, prefix="buy"):
+from bot.utils.constants import ITEM_BUTTON_FORMAT
+
+class ItemCallback(CallbackData, prefix="buy"):
     item_id: int
 
-def get_shopping_list_keyboard(items: list[dict]) -> InlineKeyboardMarkup:
-    """Generate an inline keyboard containing all unpurchased items."""
+def build_shopping_keyboard(items: list[dict]) -> InlineKeyboardMarkup:
+    """Generate an inline keyboard for unpurchased items."""
     builder = InlineKeyboardBuilder()
     
     for item in items:
-        # Create a button for each item
-        builder.button(
-            text=f"🛒 {item['item_name']} ({item['category']})",
-            callback_data=BuyItemCallback(item_id=item['id'])
+        # Format the button text dynamically using constants
+        button_text = ITEM_BUTTON_FORMAT.format(
+            item_name=item['item_name'], 
+            category=item['category']
         )
         
-    # Stack buttons vertically (1 button per row)
+        builder.button(
+            text=button_text,
+            callback_data=ItemCallback(item_id=item['id'])
+        )
+        
     builder.adjust(1)
     return builder.as_markup()

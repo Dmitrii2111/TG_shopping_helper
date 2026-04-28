@@ -3,52 +3,54 @@ from aiogram.types import Message, CallbackQuery
 from aiogram.filters import Command
 
 from bot.database import queries
-from bot.keyboards.inline import get_shopping_list_keyboard, BuyItemCallback
+from bot.keyboards.inline import build_shopping_keyboard, ItemCallback
+from bot.utils import constants
 
 shopping_router = Router(name="shopping_router")
 
 @shopping_router.message(Command("list"))
 async def cmd_list(message: Message):
-    """Display the current shopping list."""
-    items = await queries.get_unpurchased_items()
+    """Fetch items and display them using an Inline Keyboard."""
+    items = await queries.get_shopping_list()
     
     if not items:
-        await message.answer("🛒 The shopping list is currently empty!")
+        await message.answer(constants.EMPTY_LIST)
         return
     
-    keyboard = get_shopping_list_keyboard(items)
-    await message.answer("🛒 <b>Shopping List:</b>\n<i>Click an item to mark it as purchased.</i>", reply_markup=keyboard)
+    keyboard = build_shopping_keyboard(items)
+    await message.answer(constants.LIST_HEADER, reply_markup=keyboard)
 
-
-@shopping_router.callback_query(BuyItemCallback.filter())
-async def process_buy_item(callback_query: CallbackQuery, callback_data: BuyItemCallback):
-    """Handle clicks on the inline keyboard items."""
-    # 1. Mark the item as purchased in DB
-    await queries.mark_item_purchased(callback_data.item_id)
+@shopping_router.callback_query(ItemCallback.filter())
+async def process_item_purchase(callback_query: CallbackQuery, callback_data: ItemCallback):
+    """When a user clicks an item button, call mark_as_purchased and edit the message."""
+    # 1. Update database
+    await queries.mark_as_purchased(callback_data.item_id)
     
-    # 2. Answer the callback to dismiss the loading state on the user's client
-    await callback_query.answer("Item marked as purchased! ✅")
+    # 2. Answer callback alert
+    await callback_query.answer(constants.PURCHASED_CONFIRM)
     
     # 3. Fetch the updated list
-    items = await queries.get_unpurchased_items()
+    items = await queries.get_shopping_list()
     
-    # 4. Update the message inline
+    # 4. Edit the existing message
     if not items:
-        await callback_query.message.edit_text("🛒 All items have been purchased! 🎉")
+        await callback_query.message.edit_text(constants.ALL_PURCHASED)
     else:
-        keyboard = get_shopping_list_keyboard(items)
+        keyboard = build_shopping_keyboard(items)
         await callback_query.message.edit_reply_markup(reply_markup=keyboard)
 
-
 @shopping_router.message(F.text & ~F.text.startswith('/'))
-async def add_item_handler(message: Message):
-    """Catch plain text messages and add them to the list."""
+async def add_text_item(message: Message):
+    """Save standard text to the database."""
     item_name = message.text.strip()
     user_id = message.from_user.id
     
-    await queries.add_item(user_id=user_id, item_name=item_name, category="Pending")
-    
-    await message.answer(
-        f"✅ Added <b>{item_name}</b> to the list.\n"
-        f"<i>Category: Pending</i>"
+    # Insert new item using the default category constant
+    await queries.add_item(
+        user_id=user_id, 
+        item_name=item_name, 
+        category=constants.DEFAULT_CATEGORY
     )
+    
+    # Format the confirmation message
+    await message.answer(constants.ITEM_ADDED.format(item_name=item_name))

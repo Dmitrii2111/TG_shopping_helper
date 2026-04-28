@@ -12,6 +12,7 @@ from bot.handlers.base import base_router
 
 from bot.handlers.base import base_router
 from bot.handlers.shopping import shopping_router 
+from bot.handlers.voice import voice_router
 
 # Configure logging
 logging.basicConfig(
@@ -37,6 +38,7 @@ async def main():
     # 3. Include Routers
     dp.include_router(base_router)
     dp.include_router(shopping_router)
+    dp.include_router(voice_router)
 
     # 4. Start polling
     try:
